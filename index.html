@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Canvas Fingerprinting Demo</title>
+</head>
+<style>
+    input,
+    button {
+        font-size: 1.5rem;
+        padding: 0.5rem;
+        margin: 0.5rem;
+    }
+</style>
+
+<body>
+
+    <div>
+        <h2>Your browser fingerprint:</h2>
+        <h3 id="fpval"></h3>
+    </div>
+    <hr />
+    <form id="dataForm">
+        <h2>Please submit your name</h2>
+        <input type="text" name="" id="uName">
+        <button type="submit">Submit</button>
+    </form>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
+
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAaYlBWEBIu32gPhx3ss7vAvaD664H2vAU",
+            authDomain: "fp-test-48443.firebaseapp.com",
+            projectId: "fp-test-48443",
+            storageBucket: "fp-test-48443.appspot.com",
+            messagingSenderId: "978143006740",
+            appId: "1:978143006740:web:0ddf2116b6967135755701"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+
+        let form = document.getElementById('dataForm');
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            let name = document.getElementById('uName').value;
+            let id = document.getElementById('fpval').textContent;
+            let data = {
+                name,
+                id
+            }
+            console.log(data);
+            const db = getFirestore();
+
+            try {
+                const docRef = await addDoc(collection(db, 'users'), data);
+                console.log('Data added with ID: ', docRef.id);
+                alert('Result submitted successfully');
+            } catch (err) {
+                console.error(err);
+            }
+        })
+    </script>
+
+    <script>
+        function generateCanvasFingerprint() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 300
+            canvas.height = 200
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = "18px 'Arial'";
+            ctx.textBaseline = "alphabetic";
+            ctx.fillStyle = "#f60";
+            ctx.fillRect(125, 1, 62, 20);
+            ctx.fillStyle = "#069";
+            ctx.fillText("Browser Fingerprint", 2, 15);
+            ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+            ctx.fillText("Browser Fingerprint", 4, 17);
+            ctx.globalCompositeOperation = 'multiply'
+            for (const [color, x, y] of [
+                ['#f2f', 40, 40],
+                ['#2ff', 80, 40],
+                ['#ff2', 60, 80],
+            ]) {
+                ctx.fillStyle = color
+                ctx.beginPath()
+                ctx.arc(x, y, 40, 0, Math.PI * 2, true)
+                ctx.closePath()
+                ctx.fill()
+            }
+
+            ctx.fillStyle = '#f9c'
+            ctx.arc(60, 60, 60, 0, Math.PI * 2, true)
+            ctx.arc(60, 60, 20, 0, Math.PI * 2, true)
+            ctx.fill('evenodd')
+
+            const canvasFingerprint = canvas.toDataURL().split(",")[1];
+            return canvasFingerprint;
+        }
+
+        async function generateFingerprint2() {
+            let fingerprint = "";
+            fingerprint += navigator.userAgent;
+            fingerprint += screen.width + "x" + screen.height;
+            fingerprint += 'x' + window.screen.colorDepth;
+            fingerprint += new Date().getTimezoneOffset();
+            fingerprint += navigator.language || navigator.userLanguage;
+            fingerprint += navigator.platform;
+            fingerprint += getPluginsInfo();
+
+            let ipreq = await fetch('https://api.ipify.org?format=json');
+            let ip = await ipreq.json().ip;
+            fingerprint += ip;
+
+            return fingerprint;
+        }
+
+        function getPluginsInfo() {
+            let pluginsInfo = "";
+
+            for (let i = 0; i < navigator.plugins.length; i++) {
+                let plugin = navigator.plugins[i];
+                pluginsInfo += plugin.name + "," + plugin.filename + ";";
+            }
+
+            return pluginsInfo;
+        }
+
+
+
+        async function generateBrowserAudioFingerprint() {
+            var context = null;
+            var currentTime = null;
+            var oscillator = null;
+            var compressor = null;
+            var fingerprint = null;
+            var callback = null
+
+            function run(cb, debug = false) {
+
+                callback = cb;
+
+                try {
+
+                    setup();
+
+                    oscillator.connect(compressor);
+                    compressor.connect(context.destination);
+
+                    oscillator.start(0);
+                    context.startRendering();
+
+                    context.oncomplete = onComplete;
+
+                } catch (e) {
+
+                    if (debug) {
+                        throw e;
+                    }
+
+                }
+            }
+
+            function setup() {
+                setContext();
+                currentTime = context.currentTime;
+                setOscillator();
+                setCompressor();
+            }
+
+            function setContext() {
+                var audioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+                context = new audioContext(1, 44100, 44100);
+            }
+
+            function setOscillator() {
+                oscillator = context.createOscillator();
+                oscillator.type = "triangle";
+                oscillator.frequency.setValueAtTime(10000, currentTime);
+            }
+
+            function setCompressor() {
+                compressor = context.createDynamicsCompressor();
+
+                setCompressorValueIfDefined('threshold', -50);
+                setCompressorValueIfDefined('knee', 40);
+                setCompressorValueIfDefined('ratio', 12);
+                setCompressorValueIfDefined('reduction', -20);
+                setCompressorValueIfDefined('attack', 0);
+                setCompressorValueIfDefined('release', .25);
+            }
+
+            function setCompressorValueIfDefined(item, value) {
+                if (compressor[item] !== undefined && typeof compressor[item].setValueAtTime === 'function') {
+                    compressor[item].setValueAtTime(value, context.currentTime);
+                }
+            }
+
+            function onComplete(event) {
+                generateFingerprints(event);
+                compressor.disconnect();
+            }
+
+            function generateFingerprints(event) {
+                var output = null;
+                for (var i = 4500; 5e3 > i; i++) {
+
+                    var channelData = event.renderedBuffer.getChannelData(0)[i];
+                    output += Math.abs(channelData);
+
+                }
+
+                fingerprint = output.toString();
+
+                if (typeof callback === 'function') {
+                    return callback(fingerprint);
+                }
+            }
+
+            return new Promise((resolve, reject) => {
+                run((fingerprint) => {
+                    resolve(fingerprint);
+                });
+            });
+        }
+
+        // Call the function to start generating the fingerprint
+        generateBrowserAudioFingerprint();
+
+
+        async function CreateFingerprint() {
+            const fingerprint1 = generateCanvasFingerprint();
+            const fingerprint2 = await generateFingerprint2();
+            const fingerprint3 = await generateBrowserAudioFingerprint();
+
+
+
+            function hash(input, salt) {
+                var hash = 0,
+                    i, chr;
+                if (input.length === 0) return hash;
+                for (i = 0; i < input.length; i++) {
+                    chr = input.charCodeAt(i);
+                    hash = ((hash << salt) - hash) + chr;
+                    hash |= 0; // Convert to 32bit integer
+                }
+
+                let hexHash = (hash >>> 0).toString(16);
+                while (hexHash.length < 8) {
+                    hexHash = '0' + hexHash;
+                }
+                return hexHash
+
+            }
+            function divideString(str) {
+                const middleIndex = Math.floor(str.length / 2);
+                const firstPart = str.substring(0, middleIndex);
+                const secondPart = str.substring(middleIndex);
+                return [firstPart, secondPart];
+            }
+
+            let [p1, p2] = divideString(fingerprint1);
+            let [p3, p4] = divideString(fingerprint2);
+            let p5 = `${fingerprint3}`;
+            let finalHash = `${hash(p1, 5)}-${hash(p2, 2)}-${hash(p3, 3)}-${hash(p4, 4)}-${hash(p5, 5)}`;
+            console.log(finalHash);
+            document.getElementById('fpval').textContent = finalHash;
+
+        }
+
+
+        CreateFingerprint();
+
+    </script>
+</body>
+
+</html>
