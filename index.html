@@ -113,11 +113,9 @@
             fingerprint += new Date().getTimezoneOffset();
             fingerprint += navigator.language || navigator.userLanguage;
             fingerprint += navigator.platform;
-            fingerprint += getPluginsInfo();
+            console.log(getPluginInfo());
 
-            let ipreq = await fetch('https://api.ipify.org?format=json');
-            let ip = await ipreq.json().ip;
-            fingerprint += ip;
+          
 
             return fingerprint;
         }
