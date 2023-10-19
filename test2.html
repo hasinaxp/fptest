@@ -93,7 +93,7 @@
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
         function generateUUID() {
             return 'xxxx'.replace(/[xy]/g, (c) => {
@@ -123,8 +123,12 @@
         _id('test').addEventListener('click', async () => {
             let uuids = []
             snackbarMsg('data generating...');
-            for (let i = 0; i < 10000; i++) {
-                uuids.push(generateUUID())
+            for (let i = 0; i < 10; i++) {
+
+                for (let i = 0; i < 1000; i++) {
+                    uuids.push(generateUUID())
+                }
+                await sleep(100);
             }
             const db = getFirestore();
             const platform = window.navigator.platform;
