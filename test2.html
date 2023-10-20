@@ -123,9 +123,9 @@
         _id('test').addEventListener('click', async () => {
             let uuids = []
             snackbarMsg('data generating...');
-            for (let i = 0; i < 1000; i++) {
+            for (let i = 0; i < 100; i++) {
 
-                for (let i = 0; i < 30; i++) {
+                for (let i = 0; i < 100; i++) {
                     uuids.push(generateUUID())
                 }
                 await sleep(20);
