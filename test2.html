@@ -123,12 +123,12 @@
         _id('test').addEventListener('click', async () => {
             let uuids = []
             snackbarMsg('data generating...');
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 1000; i++) {
 
-                for (let i = 0; i < 1000; i++) {
+                for (let i = 0; i < 30; i++) {
                     uuids.push(generateUUID())
                 }
-                await sleep(100);
+                await sleep(20);
             }
             const db = getFirestore();
             const platform = window.navigator.platform;
